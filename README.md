@@ -1,4 +1,4 @@
-# Countdown
+# Digital Clock Version of Countdown
 
 <p align="center"><img src="https://user-images.githubusercontent.com/1820753/61105325-3b5a7b00-a482-11e9-8dde-e6603ee1dd98.gif" width="450" alt="Screen shot"></p>
 
@@ -10,7 +10,7 @@ countdown
 
 ## Key binding
 
-- `Esc` or `Ctrl+C`: To stop the countdown without running next command.
+- `Esc` or `Ctrl+C`: exit
 
 ## Install
 
