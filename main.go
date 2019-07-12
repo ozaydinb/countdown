@@ -9,31 +9,25 @@ import (
 )
 
 const (
-	usage = `usage:
-countdown 25s
-countdown 1m50s
-countdown 2h45m50s
-`
 	tick = time.Second
 )
 
 var (
-	timer          *time.Timer
 	ticker         *time.Ticker
 	queues         chan termbox.Event
-	startDone      bool
+	isStarted      bool
 	startX, startY int
 )
 
-func draw(d time.Duration) {
+func draw() {
 	w, h := termbox.Size()
 	clear()
 
-	str := format(d)
+	str := formatTime(time.Now())
 	text := toText(str)
 
-	if !startDone {
-		startDone = true
+	if !isStarted {
+		isStarted = true
 		startX, startY = w/2-text.width()/2, h/2-text.height()/2
 	}
 
@@ -46,34 +40,21 @@ func draw(d time.Duration) {
 	flush()
 }
 
-func format(d time.Duration) string {
-	d = d.Round(time.Second)
-	h := d / time.Hour
-	d -= h * time.Hour
-	m := d / time.Minute
-	d -= m * time.Minute
-	s := d / time.Second
-
-	if h < 1 {
-		return fmt.Sprintf("%02d:%02d", m, s)
-	}
-	return fmt.Sprintf("%02d:%02d:%02d", h, m, s)
-}
-
-func start(d time.Duration) {
-	timer = time.NewTimer(d)
+func start() {
 	ticker = time.NewTicker(tick)
 }
 
-func stop() {
-	timer.Stop()
-	ticker.Stop()
+func formatTime(t time.Time) string {
+	h := t.Hour()
+	m := t.Minute()
+	s := t.Second()
+	return fmt.Sprintf("%02d:%02d:%02d", h, m, s)
 }
 
-func countdown(left time.Duration) {
+func countdown() {
 	var exitCode int
 
-	start(left)
+	start()
 
 loop:
 	for {
@@ -83,17 +64,8 @@ loop:
 				exitCode = 1
 				break loop
 			}
-			if ev.Ch == 'p' || ev.Ch == 'P' {
-				stop()
-			}
-			if ev.Ch == 'c' || ev.Ch == 'C' {
-				start(left)
-			}
 		case <-ticker.C:
-			left -= time.Duration(tick)
-			draw(left)
-		case <-timer.C:
-			break loop
+			draw()
 		}
 	}
 
@@ -104,19 +76,7 @@ loop:
 }
 
 func main() {
-	if len(os.Args) != 2 {
-		stderr(usage)
-		os.Exit(2)
-	}
-
-	duration, err := time.ParseDuration(os.Args[1])
-	if err != nil {
-		stderr("error: invalid duration: %v\n", os.Args[1])
-		os.Exit(2)
-	}
-	left := duration
-
-	err = termbox.Init()
+	err := termbox.Init()
 	if err != nil {
 		panic(err)
 	}
@@ -128,6 +88,6 @@ func main() {
 		}
 	}()
 
-	draw(left)
-	countdown(left)
+	draw()
+	countdown()
 }
